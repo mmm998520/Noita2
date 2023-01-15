@@ -4,39 +4,34 @@ using UnityEngine;
 
 public class MapScanner : MonoBehaviour
 {
-    Collider2D mapCollider;
+    public GameObject Spot;
+
+    public Collider2D mapCollider;
     Vector2 scanPoint = Vector3.zero;
     public int scanCircleRadius = 5;
 
-    public GameObject cube;
+    public Sprite blue;
+    public Sprite red;
+    public Sprite white;
 
+    public ObjectPool spotObjectPool;
+    Dictionary<GameObject, SpotController> spotControllerDic = new Dictionary<GameObject, SpotController>();
     void Update()
     {
+        
         if (Input.GetKeyDown(KeyCode.Space))
         {
             StartCoroutine(scan(new Point(),scanCircleRadius));
         }
+        
     }
 
     void signal()//掃描
     {
-        /*
-         * for (int i = -scanCircleRange; i < scanCircleRange; i++)
-        {
-            for (int j = -scanCircleRange; j < scanCircleRange; j++)
-            {
-                scanPoint.x = i;
-                scanPoint.x = j;
-            }
-        }
-        */
-        if (mapCollider.bounds.Contains(scanPoint))
-        {
 
-        }
     }
 
-    WaitForSeconds aScecond = new WaitForSeconds(1);
+    WaitForSeconds wait = new WaitForSeconds(0.1f);
     IEnumerator scan(Point center, int radius)
     {
         HashSet<Point> lastPoints = new HashSet<Point>(new PointEqualityComparer());
@@ -80,14 +75,74 @@ public class MapScanner : MonoBehaviour
 
             foreach (Point point in points)
             {
-                scanPoint.x = point.x;
-                scanPoint.y = point.y;
-                Instantiate(cube, scanPoint, Quaternion.identity, transform);
+                #region
+                /*
+                GameObject spot = spotObjectPool.GetObject();
+                if (!spotControllerDic.ContainsKey(spot))
+                {
+                    spotControllerDic.Add(spot, spot.GetComponent<SpotController>());
+                }
+
+                scanPoint = point.toVector3();
+
+                spot.transform.position = scanPoint;
+
+                if (mapCollider.OverlapPoint(scanPoint))
+                {
+                    spotControllerDic[spot].sprite = red;
+                }
+                else
+                {
+                    spotControllerDic[spot].sprite = white;
+                }
+                */
+                #endregion
+
+                #region
+                
+                GameObject spot = spotObjectPool.GetObject();
+
+                scanPoint = point.toVector3();
+
+                spot.transform.position = scanPoint;
+                SpotController spotController = spot.GetComponent<SpotController>();
+
+                if (mapCollider.OverlapPoint(scanPoint))
+                {
+                    spotController.sprite = red;
+                }
+                else
+                {
+                    spotController.sprite = white;
+                }
+                spotController.reset();
+
+                #endregion
+
+                #region
+                /*
+                GameObject spot = Instantiate(Spot, spotObjectPool.transform);
+
+                scanPoint = point.toVector3();
+
+                spot.transform.position = scanPoint;
+                SpotController spotController = spot.GetComponent<SpotController>();
+
+                if (mapCollider.OverlapPoint(scanPoint))
+                {
+                    spotController.sprite = red;
+                }
+                else
+                {
+                    spotController.sprite = white;
+                }
+                */
+                #endregion
             }
 
             lastPoints = points;
             //allPoints.UnionWith(points);
-            yield return aScecond;
+            yield return wait;
         }
     }
 
@@ -141,8 +196,16 @@ public class Point
     }
     public Point()
     {
-        this.x = 0;
-        this.y = 0;
+        x = 0;
+        y = 0;
+    }
+
+    public Vector3 toVector3()
+    {
+        Vector3 vector3 = Vector3.zero;
+        vector3.x = this.x * 0.5f;
+        vector3.y = this.y * 0.5f;
+        return vector3;
     }
 }
 
